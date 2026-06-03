@@ -1,0 +1,19 @@
+# conda env create -f environment.yml
+# conda activate challenge-mle
+# python -m ipykernel install --user --name challenge-mle --display-name "Python (challenge-mle)"
+# jupyter lab challenge/exploration.ipynb
+
+name: challenge-mle
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - ipykernel
+  - jupyterlab
+  - numpy=1.22.4
+  - pandas=1.3.5
+  - matplotlib=3.7.2
+  - seaborn=0.12.2
+  - scikit-learn=1.3.0
+  - xgboost=1.7.6
