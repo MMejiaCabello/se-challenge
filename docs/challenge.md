@@ -130,6 +130,33 @@ Probar healthcheck:
 curl http://127.0.0.1:8000/health
 ```
 
+## Despliegue en Cloud Run
+
+La API esta preparada para Cloud Run. El contenedor escucha el puerto definido por la variable `PORT`, que Cloud Run inyecta al iniciar el servicio.
+
+Comandos usados para desplegar desde la raiz del repositorio:
+
+```bash
+gcloud auth login
+gcloud config set project <gcp-project-id>
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com
+
+gcloud run deploy challenge-mle-api \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated
+```
+
+Despues del despliegue, la URL publica del servicio debe configurarse en `STRESS_URL` dentro del `Makefile` para ejecutar el stress test contra la API desplegada.
+
+URL desplegada:
+
+```text
+https://challenge-mle-api-43741751766.us-central1.run.app
+```
+
+El stress test se ejecuto contra esa URL con 100 usuarios y 60 segundos de duracion.
+
 ## CI/CD
 
 Se dejaron workflows en `workflows/` y en `.github/workflows/`.
