@@ -3,8 +3,13 @@ name: Continuous Delivery
 on:
   workflow_dispatch:
 
+env:
+  GCP_PROJECT_ID: dev-farma-analytics-workspace
+  CLOUD_RUN_SERVICE: challenge-mle-api
+  CLOUD_RUN_REGION: us-central1
+
 jobs:
-  docker-build:
+  cloud-run-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -14,7 +19,9 @@ jobs:
       - name: Build Docker image
         run: docker build -t challenge-mle-api:latest .
 
-      - name: Deployment note
+      - name: Cloud Run deployment command
         run: |
           echo "Docker image built successfully."
-          echo "Push to a registry and deploy to Cloud Run can be added when cloud credentials are available."
+          echo "Deployment target: ${CLOUD_RUN_SERVICE} (${CLOUD_RUN_REGION}) in ${GCP_PROJECT_ID}"
+          echo "Run the following command after authenticating gcloud:"
+          echo "gcloud run deploy ${CLOUD_RUN_SERVICE} --source . --region ${CLOUD_RUN_REGION} --allow-unauthenticated --project ${GCP_PROJECT_ID}"

@@ -132,13 +132,13 @@ curl http://127.0.0.1:8000/health
 
 ## Despliegue en Cloud Run
 
-La API esta preparada para Cloud Run. El contenedor escucha el puerto definido por la variable `PORT`, que Cloud Run inyecta al iniciar el servicio.
+La API fue desplegada en Google Cloud Run. Para que el contenedor funcione correctamente en ese entorno, el `Dockerfile` no fija un puerto manualmente: toma el valor de la variable `PORT`, que Cloud Run inyecta al iniciar cada revision.
 
-Comandos usados para desplegar desde la raiz del repositorio:
+El despliegue se hizo desde la raiz del repositorio con Cloud Build y Cloud Run:
 
 ```bash
 gcloud auth login
-gcloud config set project <gcp-project-id>
+gcloud config set project dev-farma-analytics-workspace
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com
 
 gcloud run deploy challenge-mle-api \
@@ -147,7 +147,13 @@ gcloud run deploy challenge-mle-api \
   --allow-unauthenticated
 ```
 
-Despues del despliegue, la URL publica del servicio debe configurarse en `STRESS_URL` dentro del `Makefile` para ejecutar el stress test contra la API desplegada.
+La organizacion del proyecto no permitio agregar directamente el binding `allUsers` sobre `roles/run.invoker`. Para dejar el endpoint disponible publicamente se desactivo el invoker IAM check del servicio:
+
+```bash
+gcloud run services update challenge-mle-api \
+  --region us-central1 \
+  --no-invoker-iam-check
+```
 
 URL desplegada:
 
@@ -155,7 +161,11 @@ URL desplegada:
 https://challenge-mle-api-43741751766.us-central1.run.app
 ```
 
-El stress test se ejecuto contra esa URL con 100 usuarios y 60 segundos de duracion.
+El `Makefile` apunta a esa URL en `STRESS_URL`, de modo que `make stress-test` ejecuta la prueba contra la API desplegada. El stress test se corrio con 100 usuarios durante 60 segundos y termino sin errores:
+
+```text
+POST /predict: 6907 requests, 0 failures
+```
 
 ## CI/CD
 
@@ -163,6 +173,5 @@ Se dejaron workflows en `workflows/` y en `.github/workflows/`.
 
 - CI corre en push y pull request hacia `main` o `develop`.
 - CI instala dependencias y ejecuta `make model-test` y `make api-test`.
-- CD queda como workflow manual. Por ahora construye la imagen Docker y deja listo el punto de extension para publicar la imagen y desplegarla cuando existan credenciales cloud.
-
-Para un despliegue real, el siguiente paso natural seria publicar esta imagen en un registry y desplegarla en Cloud Run. En ese caso se debe actualizar `STRESS_URL` en el `Makefile` con la URL publica del servicio y correr `make stress-test` contra esa URL.
+- CD queda como workflow manual porque el despliegue requiere credenciales de GCP. El flujo valida el build de Docker y deja en el mismo archivo el comando de despliegue usado para Cloud Run.
+- Para automatizar completamente el CD desde GitHub Actions, faltaria configurar credenciales del proyecto en GitHub Secrets o Workload Identity Federation.
