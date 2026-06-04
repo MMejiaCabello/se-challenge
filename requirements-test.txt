@@ -1,4 +1,9 @@
-locust~=1.6
+locust==1.6.0
+flask==1.1.2
+itsdangerous==1.1.0
+Jinja2==3.0.3
+Werkzeug==2.0.3
+click==8.0.4
 coverage~=5.5
 pytest~=6.2.5
 pytest-cov~=2.12.1
